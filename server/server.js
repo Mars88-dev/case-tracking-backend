@@ -13,7 +13,7 @@ app.use(express.json());
 
 // ✅ CORS configuration for localhost dev + deployed frontend
 app.use(cors({
-  origin: ["http://localhost:3000"],
+  oorigin: ["http://localhost:3000", "https://case-tracking-frontend.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
