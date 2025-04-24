@@ -10,13 +10,17 @@ const bcrypt = require("bcryptjs");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
 
-// MongoDB Connection
-mongoose.connect("mongodb+srv://<username>:<password>@cluster0.mongodb.net/conveyancer_db?retryWrites=true&w=majority", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log("Connected to MongoDB"))
+// ✅ CORS configuration for localhost dev + deployed frontend
+app.use(cors({
+  origin: ["http://localhost:3000"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+// ✅ MongoDB Connection
+mongoose.connect("mongodb+srv://superadmin:superadmin@lawfirmcluster.euw1z.mongodb.net/?retryWrites=true&w=majority&appName=LawFirmCluster")
+  .then(() => console.log("Connected to MongoDB"))
   .catch(err => console.error("MongoDB connection error:", err));
 
 // Models
@@ -169,5 +173,5 @@ app.get("/api/report/:id", authMiddleware, async (req, res) => {
   }
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
