@@ -21,6 +21,16 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+// ✅ Handle preflight requests (OPTIONS)
+app.options('*', cors({
+  origin: [
+    "http://localhost:3000",
+    "https://case-tracking-frontend.onrender.com"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 // ✅ MongoDB Connection
 mongoose.connect("mongodb+srv://superadmin:superadmin@lawfirmcluster.euw1z.mongodb.net/?retryWrites=true&w=majority&appName=LawFirmCluster")
   .then(() => console.log("Connected to MongoDB"))
