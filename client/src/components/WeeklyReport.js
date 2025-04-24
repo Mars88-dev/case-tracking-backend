@@ -38,7 +38,7 @@ export default function WeeklyReport() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     axios
-      .get(`http://localhost:5000/api/cases/${id}`, {
+      .get(`https://case-tracking-backend.onrender.com/api/cases/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then((res) => setCaseData(res.data))

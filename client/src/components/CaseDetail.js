@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const BASE_URL = "https://case-tracking-frontend.onrender.com";
+const BASE_URL = "https://case-tracking-backend.onrender.com";
 const COLORS = {
   primary: "#142a4f",
   accent: "#d2ac68",

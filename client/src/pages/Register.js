@@ -11,7 +11,7 @@ export default function Register() {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/auth/register", { username, email, password });
+      await axios.post("https://case-tracking-backend.onrender.com/api/auth/register", { username, email, password });
       navigate("/login");
     } catch (err) {
       alert(err.response?.data?.message || "Registration failed");
