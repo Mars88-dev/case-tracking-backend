@@ -68,7 +68,7 @@ const renderSection = (title, fields, data) => (
       color: COLORS.gold
     }}>{title}</div>
     {fields.map(({ key, label }) => (
-      <div key={key}>
+      <div key={key} style={key === "comments" ? { gridColumn: "1 / -1" } : {}}>
         <div style={{
           background: COLORS.primary,
           color: COLORS.white,

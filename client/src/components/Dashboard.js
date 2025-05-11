@@ -98,14 +98,24 @@ export default function Dashboard() {
 
   const daysSince = (inputDate) => {
     if (!inputDate) return "—";
+  
+    // Try ISO format
+    const parsedDate = new Date(inputDate);
+    if (!isNaN(parsedDate.getTime())) {
+      const now = new Date();
+      const diff = Math.floor((now - parsedDate) / (1000 * 60 * 60 * 24));
+      return diff >= 0 ? diff : "—";
+    }
+  
+    // Fallback: try dd/mm/yyyy
     const [day, month, year] = inputDate.split("/");
-    if (!day || !month || !year) return "—";
-    const parsedDate = new Date(`${year}-${month}-${day}`);
-    if (isNaN(parsedDate.getTime())) return "—";
+    const fallbackDate = new Date(`${year}-${month}-${day}`);
+    if (isNaN(fallbackDate.getTime())) return "—";
+  
     const now = new Date();
-    const diff = Math.floor((now - parsedDate) / (1000 * 60 * 60 * 24));
+    const diff = Math.floor((now - fallbackDate) / (1000 * 60 * 60 * 24));
     return diff >= 0 ? diff : "—";
-  };
+  };  
 
   const handleColorChange = async (caseId, color) => {
     try {
@@ -206,7 +216,7 @@ export default function Dashboard() {
                       <tr style={{ background: COLORS.gray }}>
                         <td colSpan={6} style={{ padding: 16 }}>
                           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
-                            {renderSection("Information", columns.filter(col => ["reference", "instructionReceived", "parties", "agency", "agent", "purchasePrice", "property", "date"].includes(col.key)), c)}
+                            {renderSection("Information", columns.filter(col => ["reference", "instructionReceived", "date", "parties", "agency", "agent", "purchasePrice", "property"].includes(col.key)), c)}
                             {renderSection("Financials", columns.filter(col => ["depositAmount", "bondAmount", "depositDueDate", "depositFulfilledDate", "bondDueDate", "bondFulfilledDate"].includes(col.key)), c)}
                             {renderSection("TRANSFER PROCESS - REQUESTED", columns.filter(col => col.key.includes("Requested")), c)}
                             {renderSection("TRANSFER PROCESS - RECEIVED", columns.filter(col => col.key.includes("Received") && col.key !== "instructionReceived"), c)}
