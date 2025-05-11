@@ -87,7 +87,7 @@ const DateSelect = ({ label, name, value, onChange, color }) => {
   const isDate = /^\d{4}-\d{2}-\d{2}$/.test(value);
   return (
     <div style={{ ...styles.field, backgroundColor: color }}>
-      <label style={styles.label}>{label}</label>
+      <div style={styles.subLabel}>{label}</div>
       <div style={styles.dateRow}>
         <input type="date" name={name} value={isDate ? value : ""} onChange={onChange} style={styles.input} />
         <select name={name} value={!isDate ? value || "" : ""} onChange={onChange} style={styles.select}>
@@ -182,8 +182,8 @@ export default function CaseDetail() {
       icon: "🔄",
       cols: 2,
       fields: TRANSFER_ITEMS.flatMap(item => ([
-        { type: "date", label: `${item.replace(/([A-Z])/g, ' $1')} - Requested`, name: `${item}Requested` },
-        { type: "date", label: `${item.replace(/([A-Z])/g, ' $1')} - Received`, name: `${item}Received` }
+        { type: "date", label: `${item === 'electricalComplianceCertificate' ? 'COC ELECTRICAL COMPLIANCE CERTIFICATE' : item.replace(/([A-Z])/g, ' $1').toUpperCase()} - REQUESTED`, name: `${item}Requested` },
+        { type: "date", label: `${item === 'electricalComplianceCertificate' ? 'COC ELECTRICAL COMPLIANCE CERTIFICATE' : item.replace(/([A-Z])/g, ' $1').toUpperCase()} - RECEIVED`, name: `${item}Received` }
       ]))
     },
     {
@@ -255,6 +255,7 @@ const styles = {
   sectionTitle: { color: COLORS.white, fontSize: 18, fontWeight: 600 },
   field: { display: 'flex', flexDirection: 'column' },
   label: { fontSize: 14, color: COLORS.primary, marginBottom: 6 },
+  subLabel: { fontSize: 13, fontWeight: 600, padding: '4px 8px', backgroundColor: COLORS.primary, color: COLORS.white, borderRadius: 4, marginBottom: 6, textAlign: 'center' },
   input: { padding: 10, border: `1px solid ${COLORS.grayLight}`, borderRadius: 4, flex: 1 },
   select: { padding: 10, border: `1px solid ${COLORS.grayLight}`, borderRadius: 4, width: 120 },
   dateRow: { display: 'flex', gap: 12 },

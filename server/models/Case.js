@@ -5,7 +5,7 @@ const caseSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   reference: String,
   date: String,
-  instructionReceived: String,
+  instructionReceived: { type: Date },
   parties: String,
   agency: String,
   purchasePrice: String,

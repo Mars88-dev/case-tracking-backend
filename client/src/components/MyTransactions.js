@@ -1,5 +1,4 @@
 // File: src/components/MyTransaction.js
-// ✅ Updated to remove duplicate "Instruction Received" and "Bond Cancellation Figures"
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -91,20 +90,27 @@ const renderSection = (title, fields, data) => (
 export default function MyTransaction() {
   const [cases, setCases] = useState([]);
   const [expandedRow, setExpandedRow] = useState(null);
+  const [sortAZ, setSortAZ] = useState(false);
+  const [filterOutstanding, setFilterOutstanding] = useState(false);
   const navigate = useNavigate();
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
-    const token = localStorage.getItem("token");
     if (!token) return;
     axios.get(`${BASE_URL}/api/mycases`, {
       headers: { Authorization: `Bearer ${token}` }
     })
-      .then(res => setCases(res.data))
+      .then(res => {
+        let data = res.data;
+        if (sortAZ) data = [...data].sort((a, b) => a.reference.localeCompare(b.reference));
+        if (filterOutstanding) data = data.filter(c => !c.bondAmount || !c.depositAmount);
+        setCases(data);
+      })
       .catch(console.error);
-  }, []);
+  }, [sortAZ, filterOutstanding, token]);
 
   const handleDelete = async (id) => {
-    const token = localStorage.getItem("token");
     if (!window.confirm("Are you sure you want to delete this transaction?")) return;
     try {
       await axios.delete(`${BASE_URL}/api/cases/${id}`, {
@@ -117,36 +123,47 @@ export default function MyTransaction() {
     }
   };
 
+  const daysSince = (dateStr) => {
+    if (!dateStr) return "—";
+    const [day, month, year] = dateStr.split("/");
+    const parsed = new Date(`${year}-${month}-${day}`);
+    if (isNaN(parsed)) return "—";
+    const now = new Date();
+    const diff = Math.floor((now - parsed) / (1000 * 60 * 60 * 24));
+    return diff >= 0 ? diff : "—";
+  };
+
   return (
     <div style={{ background: COLORS.background, minHeight: '100vh', padding: 24, fontFamily: 'Arial, sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <img src="/logo.png" alt="Logo" style={{ height: 90 }} />
         <h1 style={{ color: COLORS.primary, fontSize: 32 }}>My Transactions</h1>
-        <button onClick={() => navigate('/case/new')} style={{ background: COLORS.accent, color: COLORS.white, border: 'none', padding: '10px 16px', borderRadius: 6, cursor: 'pointer' }}>+ New Transaction</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setSortAZ(!sortAZ)} style={{ padding: 8, borderRadius: 4 }}>Sort A-Z</button>
+          <button onClick={() => setFilterOutstanding(!filterOutstanding)} style={{ padding: 8, borderRadius: 4 }}>Filter Outstanding</button>
+          <button onClick={() => { setSortAZ(false); setFilterOutstanding(false); }} style={{ padding: 8, borderRadius: 4 }}>Reset</button>
+          <button onClick={() => navigate('/case/new')} style={{ background: COLORS.accent, color: COLORS.white, border: 'none', padding: '10px 16px', borderRadius: 6, cursor: 'pointer' }}>+ New Transaction</button>
+        </div>
       </div>
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
           <thead>
             <tr>
-              {["reference", "agent", "parties", "property"].map(key => (
-                <th key={key} style={{
-                  padding: '12px 8px',
-                  background: COLORS.primary,
-                  color: COLORS.white,
-                  borderBottom: `2px solid ${COLORS.border}`,
-                  textAlign: 'left'
-                }}>
+              <th style={{ width: 40, background: COLORS.primary, color: COLORS.white }}>#</th>
+              {"reference agent parties property".split(" ").map(key => (
+                <th key={key} style={{ padding: '12px 8px', background: COLORS.primary, color: COLORS.white, borderBottom: `2px solid ${COLORS.border}`, textAlign: 'left' }}>
                   {columns.find(c => c.key === key)?.label || key}
                 </th>
               ))}
-              <th style={{ padding: '12px 8px', background: COLORS.primary, color: COLORS.white, borderBottom: `2px solid ${COLORS.border}` }}>Actions</th>
+              <th style={{ padding: '12px 8px', background: COLORS.primary, color: COLORS.white }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {cases.map((c, i) => (
               <React.Fragment key={c._id}>
                 <tr style={{ background: i % 2 === 0 ? COLORS.white : COLORS.gray }}>
-                  {["reference", "agent", "parties", "property"].map(key => (
+                  <td style={{ padding: '6px 4px', backgroundColor: COLORS.primary, color: COLORS.white, fontWeight: 'bold', fontSize: '11px', textAlign: 'center', fontFamily: 'monospace', letterSpacing: '1px', borderRadius: 4 }}>{daysSince(c.instructionReceived)}</td>
+                  {"reference agent parties property".split(" ").map(key => (
                     <td key={key} style={{ padding: '10px 8px', borderBottom: `1px solid ${COLORS.border}`, backgroundColor: c.colors?.[key] || 'inherit', wordBreak: 'break-word' }}>
                       {c[key] || '—'}
                     </td>
@@ -164,7 +181,7 @@ export default function MyTransaction() {
                 </tr>
                 {expandedRow === c._id && (
                   <tr style={{ background: COLORS.gray }}>
-                    <td colSpan={5} style={{ padding: 16 }}>
+                    <td colSpan={6} style={{ padding: 16 }}>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
                         {renderSection("Information", columns.filter(col => ["reference", "parties", "agency", "agent", "purchasePrice", "property"].includes(col.key)), c)}
                         {renderSection("Financials", columns.filter(col => col.key.includes("deposit") || (col.key.includes("bond") && !col.key.includes("bondCancellationFigures"))), c)}

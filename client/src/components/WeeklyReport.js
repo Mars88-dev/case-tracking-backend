@@ -96,7 +96,7 @@ export default function WeeklyReport() {
 
   const DualField = ({ label, requestedKey, receivedKey }) => (
     <div style={{ fontSize: 11, border: "1px solid #c8b68b", backgroundColor: COLORS.beige, padding: 4 }}>
-      <div style={{ fontWeight: "bold", marginBottom: 2 }}>{label}</div>
+      <div style={{ fontWeight: "bold", marginBottom: 2, backgroundColor: COLORS.navy, color: COLORS.white, padding: "4px 6px", borderRadius: 4 }}>{label}</div>
       <div><strong>Requested:</strong> {caseData[requestedKey] || "—"}</div>
       <div><strong>Received:</strong> {caseData[receivedKey] || "—"}</div>
     </div>
@@ -159,15 +159,15 @@ export default function WeeklyReport() {
 
           <Section title="TRANSFER PROCESS">
             <Grid cols={3}>
-              <DualField label="Seller FICA Docs" requestedKey="sellerFicaDocumentsRequested" receivedKey="sellerFicaDocumentsReceived" />
-              <DualField label="Purchaser FICA Docs" requestedKey="purchaserFicaDocumentsRequested" receivedKey="purchaserFicaDocumentsReceived" />
+              <DualField label="Seller FICA Documents" requestedKey="sellerFicaDocumentsRequested" receivedKey="sellerFicaDocumentsReceived" />
+              <DualField label="Purchaser FICA Documents" requestedKey="purchaserFicaDocumentsRequested" receivedKey="purchaserFicaDocumentsReceived" />
               <DualField label="Title Deed" requestedKey="titleDeedRequested" receivedKey="titleDeedReceived" />
               <DualField label="Bond Cancellation Figures" requestedKey="bondCancellationFiguresRequested" receivedKey="bondCancellationFiguresReceived" />
               <DualField label="Municipal Clearance Figures" requestedKey="municipalClearanceFiguresRequested" receivedKey="municipalClearanceFiguresReceived" />
               <DualField label="Transfer Duty Receipt" requestedKey="transferDutyReceiptRequested" receivedKey="transferDutyReceiptReceived" />
               <DualField label="Guarantees from Bond Attorneys" requestedKey="guaranteesFromBondAttorneysRequested" receivedKey="guaranteesFromBondAttorneysReceived" />
               <DualField label="Transfer Cost" requestedKey="transferCostRequested" receivedKey="transferCostReceived" />
-              <DualField label="Electrical Compliance Certificate" requestedKey="electricalComplianceCertificateRequested" receivedKey="electricalComplianceCertificateReceived" />
+              <DualField label="COC Electrical Compliance Certificate" requestedKey="electricalComplianceCertificateRequested" receivedKey="electricalComplianceCertificateReceived" />
               <DualField label="Municipal Clearance Certificate" requestedKey="municipalClearanceCertificateRequested" receivedKey="municipalClearanceCertificateReceived" />
               <DualField label="Levy Clearance Certificate" requestedKey="levyClearanceCertificateRequested" receivedKey="levyClearanceCertificateReceived" />
               <DualField label="HOA Certificate" requestedKey="hoaCertificateRequested" receivedKey="hoaCertificateReceived" />

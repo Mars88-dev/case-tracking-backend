@@ -7,6 +7,7 @@ const PizZip = require("pizzip");
 const Docxtemplater = require("docxtemplater");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+require("dotenv").config();
 
 const app = express();
 app.use(express.json());
@@ -15,7 +16,7 @@ app.use(express.json());
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "https://case-tracking-frontend.onrender.com"
+    process.env.FRONTEND_ORIGIN || "https://case-tracking-frontend.onrender.com"
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -25,14 +26,14 @@ app.use(cors({
 app.options('*', cors({
   origin: [
     "http://localhost:3000",
-    "https://case-tracking-frontend.onrender.com"
+    process.env.FRONTEND_ORIGIN || "https://case-tracking-frontend.onrender.com"
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 // ✅ MongoDB Connection
-mongoose.connect("mongodb+srv://superadmin:superadmin@lawfirmcluster.euw1z.mongodb.net/?retryWrites=true&w=majority&appName=LawFirmCluster")
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => console.error("MongoDB connection error:", err));
 
@@ -40,13 +41,22 @@ mongoose.connect("mongodb+srv://superadmin:superadmin@lawfirmcluster.euw1z.mongo
 const User = require("./models/User");
 const Case = require("./models/Case");
 
+// Helper: parse dd/mm/yyyy to real Date
+function parseDMY(dateStr) {
+  if (!dateStr || typeof dateStr !== "string") return undefined;
+  const [day, month, year] = dateStr.split("/");
+  if (!day || !month || !year) return undefined;
+  const parsed = new Date(`${year}-${month}-${day}`);
+  return isNaN(parsed) ? undefined : parsed;
+}
+
 // Middleware for JWT Auth
 const authMiddleware = async (req, res, next) => {
   let token = req.headers.authorization?.split(" ")[1] || req.query.token;
   if (!token) return res.status(401).json({ message: "No token provided" });
 
   try {
-    const decoded = jwt.verify(token, "my_super_secret_key");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = decoded.userId;
     req.user = await User.findById(decoded.userId);
     next();
@@ -80,7 +90,7 @@ app.post("/api/auth/login", async (req, res) => {
     if (!user || !await bcrypt.compare(password, user.password)) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-    const token = jwt.sign({ userId: user._id }, "my_super_secret_key", { expiresIn: "1h" });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
     res.json({ message: "Login successful", token });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -92,10 +102,16 @@ app.post("/api/auth/login", async (req, res) => {
 // Create Case
 app.post("/api/cases", authMiddleware, async (req, res) => {
   try {
-    const newCase = new Case({ ...req.body, createdBy: req.userId });
+    const data = {
+      ...req.body,
+      createdBy: req.userId,
+      instructionReceived: parseDMY(req.body.instructionReceived)
+    };
+    const newCase = new Case(data);
     const saved = await newCase.save();
     res.status(201).json(saved);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -140,7 +156,11 @@ app.put("/api/cases/:id", authMiddleware, async (req, res) => {
     const canEdit = req.user.isAdmin || updated.createdBy.toString() === req.userId;
     if (!canEdit) return res.status(403).json({ message: "Unauthorized" });
 
-    Object.assign(updated, req.body);
+    Object.assign(updated, {
+      ...req.body,
+      instructionReceived: parseDMY(req.body.instructionReceived) || updated.instructionReceived
+    });
+
     await updated.save();
     res.json(updated);
   } catch (err) {
