@@ -1,7 +1,9 @@
-// File: src/components/Dashboard.js
+// FULL FILE: src/components/Dashboard.js
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaComments } from "react-icons/fa";
+import MessageBox from "./MessageBox";
 
 const BASE_URL = "https://case-tracking-backend.onrender.com";
 const COLORS = {
@@ -69,18 +71,24 @@ export default function Dashboard() {
   const [sortAZ, setSortAZ] = useState(false);
   const [filterOutstanding, setFilterOutstanding] = useState(false);
   const [colorPickIndex, setColorPickIndex] = useState(null);
+  const [selectedCaseId, setSelectedCaseId] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
-
   const token = localStorage.getItem("token");
 
   const fetchCases = useCallback(() => {
     if (!token) return;
     axios.get(`${BASE_URL}/api/cases`, {
       headers: { Authorization: `Bearer ${token}` }
-    }).then((res) => {
+    }).then(async (res) => {
+      const userRes = await axios.get(`${BASE_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCurrentUser(userRes.data);
+
       let data = res.data;
       if (sortAZ) data = [...data].sort((a, b) => a.reference.localeCompare(b.reference));
-      if (filterOutstanding) data = data.filter(c => !c.bondAmount || !c.depositAmount);
+      if (filterOutstanding) data = data.filter(c => !c.bondAmount || !c.depositAmount || !c.transferCostReceived);
 
       const grouped = data.reduce((acc, c) => {
         const user = c.createdBy?.username || "Unknown User";
@@ -96,43 +104,32 @@ export default function Dashboard() {
     fetchCases();
   }, [fetchCases]);
 
+  const handleOpenMessages = (id) => setSelectedCaseId(id);
+  const handleCloseMessages = () => setSelectedCaseId(null);
+
   const daysSince = (inputDate) => {
     if (!inputDate) return "—";
-  
-    // Try ISO format
-    const parsedDate = new Date(inputDate);
-    if (!isNaN(parsedDate.getTime())) {
-      const now = new Date();
-      const diff = Math.floor((now - parsedDate) / (1000 * 60 * 60 * 24));
-      return diff >= 0 ? diff : "—";
-    }
-  
-    // Fallback: try dd/mm/yyyy
-    const [day, month, year] = inputDate.split("/");
-    const fallbackDate = new Date(`${year}-${month}-${day}`);
-    if (isNaN(fallbackDate.getTime())) return "—";
-  
+    const date = new Date(inputDate);
     const now = new Date();
-    const diff = Math.floor((now - fallbackDate) / (1000 * 60 * 60 * 24));
+    const diff = Math.floor((now - date) / (1000 * 60 * 60 * 24));
     return diff >= 0 ? diff : "—";
-  };  
+  };
+
+  const formatDate = (val) => {
+    if (!val) return "—";
+    const date = new Date(val);
+    return !isNaN(date) ? date.toLocaleDateString("en-GB") : val;
+  };
 
   const handleColorChange = async (caseId, color) => {
     try {
-      // Fetch latest full case
       const { data: existingCase } = await axios.get(`${BASE_URL}/api/cases/${caseId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
       const updatedColors = { ...existingCase.colors, daysSinceInstruction: color };
-
-      await axios.put(`${BASE_URL}/api/cases/${caseId}`, {
-        ...existingCase,
-        colors: updatedColors
-      }, {
+      await axios.put(`${BASE_URL}/api/cases/${caseId}`, { ...existingCase, colors: updatedColors }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
       fetchCases();
     } catch (err) {
       console.error("Failed to update color:", err);
@@ -141,15 +138,11 @@ export default function Dashboard() {
 
   const renderSection = (title, fields, data) => (
     <>
-      <div style={{ gridColumn: "1 / -1", margin: "10px 0 4px", borderBottom: `2px solid ${COLORS.gold}`, paddingBottom: 4, fontWeight: "bold", fontSize: 14, color: COLORS.gold }}>
-        {title}
-      </div>
+      <div style={{ gridColumn: "1 / -1", margin: "10px 0 4px", borderBottom: `2px solid ${COLORS.gold}`, paddingBottom: 4, fontWeight: "bold", fontSize: 14, color: COLORS.gold }}>{title}</div>
       {fields.map(({ key, label }) => (
         <div key={key} style={key === "comments" ? { gridColumn: "1 / -1" } : {}}>
           <div style={{ background: COLORS.primary, color: COLORS.white, padding: "6px 10px", borderRadius: 4, fontWeight: "bold" }}>{label}</div>
-          <div style={{ border: `1px solid ${COLORS.border}`, padding: "6px 10px", borderRadius: 4, backgroundColor: data.colors?.[key] || COLORS.white }}>
-            {data[key] || "—"}
-          </div>
+          <div style={{ border: `1px solid ${COLORS.border}`, padding: "6px 10px", borderRadius: 4, backgroundColor: data.colors?.[key] || COLORS.white }}>{formatDate(data[key])}</div>
         </div>
       ))}
     </>
@@ -166,6 +159,7 @@ export default function Dashboard() {
           <button onClick={() => { setSortAZ(false); setFilterOutstanding(false); }} style={{ padding: 8, borderRadius: 4 }}>Reset</button>
         </div>
       </div>
+
       {Object.entries(casesByUser).map(([user, cases]) => (
         <section key={user} style={{ marginBottom: 32 }}>
           <h2 style={{ color: COLORS.primary, backgroundColor: COLORS.accent, padding: "10px 20px", borderRadius: 6 }}>{user}</h2>
@@ -196,20 +190,19 @@ export default function Dashboard() {
                         <div style={{ display: "flex", gap: 6 }}>
                           <button onClick={() => navigate(`/case/${c._id}`)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}>Edit</button>
                           <button onClick={() => navigate(`/report/${c._id}`)} style={{ background: COLORS.accent, color: COLORS.primary, border: "none", padding: "6px 10px", borderRadius: 4 }}>Report</button>
+                          <button onClick={() => handleOpenMessages(c._id)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}><FaComments /></button>
                           <button onClick={() => setExpandedRow(expandedRow === c._id ? null : c._id)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}>{expandedRow === c._id ? "Hide" : "View More"}</button>
                         </div>
                       </td>
                     </tr>
                     {colorPickIndex === c._id && (
                       <tr>
-                        <td colSpan={6}>
-                          <div style={{ padding: 10, display: "flex", alignItems: "center", gap: 10, background: COLORS.gray }}>
-                            <label>Pick a highlight color:</label>
-                            <input type="color" onChange={e => handleColorChange(c._id, e.target.value)} value={c.colors?.daysSinceInstruction || "#ffffff"} />
-                            <button onClick={() => handleColorChange(c._id, "")} style={{ padding: "4px 8px" }}>Reset</button>
-                            <button onClick={() => setColorPickIndex(null)} style={{ padding: "4px 8px" }}>Close</button>
-                          </div>
-                        </td>
+                        <td colSpan={6}><div style={{ padding: 10, display: "flex", alignItems: "center", gap: 10, background: COLORS.gray }}>
+                          <label>Pick a highlight color:</label>
+                          <input type="color" onChange={e => handleColorChange(c._id, e.target.value)} value={c.colors?.daysSinceInstruction || "#ffffff"} />
+                          <button onClick={() => handleColorChange(c._id, "")} style={{ padding: "4px 8px" }}>Reset</button>
+                          <button onClick={() => setColorPickIndex(null)} style={{ padding: "4px 8px" }}>Close</button>
+                        </div></td>
                       </tr>
                     )}
                     {expandedRow === c._id && (
@@ -234,6 +227,14 @@ export default function Dashboard() {
           </div>
         </section>
       ))}
+
+      {selectedCaseId && currentUser && (
+        <MessageBox
+          caseId={selectedCaseId}
+          onClose={handleCloseMessages}
+          currentUser={currentUser}
+        />
+      )}
     </div>
   );
 }

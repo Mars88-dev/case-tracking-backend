@@ -85,42 +85,32 @@ export default function WeeklyReport() {
   });
 
   if (!caseData) return <div>Loading...</div>;
-  const today = new Date().toLocaleDateString();
+  const today = new Date().toLocaleDateString("en-GB");
+
+  const formatDate = (value) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    return isNaN(date) ? value : date.toLocaleDateString("en-GB");
+  };
 
   const Field = ({ label, value }) => (
     <div style={{ display: "flex", flexDirection: "column", fontSize: 11 }}>
       <label style={{ marginBottom: 2, fontWeight: "bold" }}>{label}</label>
-      <div style={{ border: "1px solid #c8b68b", minHeight: 20, backgroundColor: COLORS.beige, padding: "2px 4px" }}>{value || "—"}</div>
+      <div style={{ border: "1px solid #c8b68b", minHeight: 20, backgroundColor: COLORS.beige, padding: "2px 4px" }}>{formatDate(value)}</div>
     </div>
   );
 
   const DualField = ({ label, requestedKey, receivedKey }) => (
     <div style={{ fontSize: 11, border: "1px solid #c8b68b", backgroundColor: COLORS.beige, padding: 4 }}>
       <div style={{ fontWeight: "bold", marginBottom: 2, backgroundColor: COLORS.navy, color: COLORS.white, padding: "4px 6px", borderRadius: 4 }}>{label}</div>
-      <div><strong>Requested:</strong> {caseData[requestedKey] || "—"}</div>
-      <div><strong>Received:</strong> {caseData[receivedKey] || "—"}</div>
+      <div><strong>Requested:</strong> {formatDate(caseData[requestedKey])}</div>
+      <div><strong>Received:</strong> {formatDate(caseData[receivedKey])}</div>
     </div>
   );
 
   return (
     <div style={{ background: COLORS.beige, padding: 10, fontFamily: "Arial, sans-serif", minHeight: "100vh" }}>
-      <div
-        id="report-container"
-        ref={reportRef}
-        style={{
-          width: 794,
-          height: 1123,
-          margin: "auto",
-          backgroundColor: COLORS.white,
-          padding: 18,
-          boxSizing: "border-box",
-          fontFamily: "Arial, sans-serif",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between"
-        }}
-      >
+      <div id="report-container" ref={reportRef} style={{ width: 794, height: 1123, margin: "auto", backgroundColor: COLORS.white, padding: 18, boxSizing: "border-box", fontFamily: "Arial, sans-serif", boxShadow: "0 2px 10px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
         <div>
           <header style={{ marginBottom: 10 }}>
             <img src="/header.png" alt="Header" style={{ width: "100%" }} />

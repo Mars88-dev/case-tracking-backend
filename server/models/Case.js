@@ -1,6 +1,13 @@
 // File: server/models/Case.js
 const mongoose = require('mongoose');
 
+const messageSchema = new mongoose.Schema({
+  senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  senderName: String,
+  text: String,
+  timestamp: { type: Date, default: Date.now },
+});
+
 const caseSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   reference: String,
@@ -50,7 +57,9 @@ const caseSchema = new mongoose.Schema({
   deedsPrepDate: String,
   registrationDate: String,
   comments: String,
-  colors: { type: mongoose.Schema.Types.Mixed, default: {} }
+  colors: { type: mongoose.Schema.Types.Mixed, default: {} },
+
+  messages: [messageSchema]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Case', caseSchema);

@@ -134,10 +134,26 @@ export default function CaseDetail() {
     try {
       const token = localStorage.getItem("token");
       const cfg = { headers: { Authorization: `Bearer ${token}` } };
+
+      const formatDateToISO = (str) => {
+        if (!str || typeof str !== "string") return str;
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) {
+          const [day, month, year] = str.split("/");
+          return new Date(`${year}-${month}-${day}`).toISOString();
+        }
+        return str;
+      };
+
       const dataToSave = { ...form };
+      const dateFields = Object.keys(dataToSave).filter(k => k.toLowerCase().includes("date"));
+      dateFields.forEach(field => {
+        dataToSave[field] = formatDateToISO(dataToSave[field]);
+      });
+
       if (isNew) {
-        dataToSave.date = new Date().toISOString().slice(0, 10);
+        dataToSave.date = new Date().toISOString();
       }
+
       const response = await axios({ method: isNew ? "post" : "put", url, data: dataToSave, ...cfg });
       console.log("✅ Save response:", response.data);
       navigate("/mytransactions");
