@@ -97,6 +97,18 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
+// Get current logged-in user
+app.get("/api/users/me", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("username email isAdmin");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    console.error("Error in /api/users/me:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // CRUD Routes
 
 // Create Case
