@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
 const PizZip = require("pizzip");
+const Message = require("./models/Message");
 const Docxtemplater = require("docxtemplater");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -176,6 +177,34 @@ app.put("/api/cases/:id", authMiddleware, async (req, res) => {
     await updated.save();
     res.json(updated);
   } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get all messages for a case
+app.get("/api/cases/:id/messages", authMiddleware, async (req, res) => {
+  try {
+    const messages = await Message.find({ caseId: req.params.id }).sort({ createdAt: 1 });
+    res.json(messages);
+  } catch (err) {
+    console.error("Message fetch error:", err);
+    res.status(500).json({ message: "Failed to fetch messages" });
+  }
+});
+
+// Post a new message
+app.post("/api/cases/:id/messages", authMiddleware, async (req, res) => {
+  try {
+    const message = new Message({
+      caseId: req.params.id,
+      userId: req.userId,
+      username: req.user.username,
+      content: req.body.content
+    });
+    const saved = await message.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    console.error("Failed to post message:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
