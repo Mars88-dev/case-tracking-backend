@@ -73,6 +73,7 @@ export default function Dashboard() {
   const [colorPickIndex, setColorPickIndex] = useState(null);
   const [selectedCaseId, setSelectedCaseId] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [messageCounts, setMessageCounts] = useState({});
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -97,6 +98,19 @@ export default function Dashboard() {
         return acc;
       }, {});
       setCasesByUser(grouped);
+
+      const messagePromises = data.map(c =>
+        axios.get(`${BASE_URL}/api/cases/${c._id}/messages`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).then(res => ({ id: c._id, count: res.data.length })).catch(() => ({ id: c._id, count: 0 }))
+      );
+      const counts = await Promise.all(messagePromises);
+      const countsMap = counts.reduce((acc, cur) => {
+        acc[cur.id] = cur.count;
+        return acc;
+      }, {});
+      setMessageCounts(countsMap);
+
     }).catch(console.error);
   }, [sortAZ, filterOutstanding, token]);
 
@@ -104,7 +118,10 @@ export default function Dashboard() {
     fetchCases();
   }, [fetchCases]);
 
-  const handleOpenMessages = (id) => setSelectedCaseId(id);
+  const handleOpenMessages = (id) => {
+    setSelectedCaseId(id);
+    setMessageCounts(prev => ({ ...prev, [id]: 0 }));
+  };
   const handleCloseMessages = () => setSelectedCaseId(null);
 
   const daysSince = (inputDate) => {
@@ -187,10 +204,15 @@ export default function Dashboard() {
                         <td key={key} style={{ padding: "10px 8px", backgroundColor: c.colors?.[key] || "inherit", wordBreak: "break-word" }}>{c[key] || "—"}</td>
                       ))}
                       <td style={{ padding: "10px 8px" }}>
-                        <div style={{ display: "flex", gap: 6 }}>
+                        <div style={{ display: "flex", gap: 6, position: "relative" }}>
                           <button onClick={() => navigate(`/case/${c._id}`)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}>Edit</button>
                           <button onClick={() => navigate(`/report/${c._id}`)} style={{ background: COLORS.accent, color: COLORS.primary, border: "none", padding: "6px 10px", borderRadius: 4 }}>Report</button>
-                          <button onClick={() => handleOpenMessages(c._id)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}><FaComments /></button>
+                          <div style={{ position: "relative" }}>
+                            <button onClick={() => handleOpenMessages(c._id)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}><FaComments /></button>
+                            {messageCounts[c._id] > 0 && (
+                              <span style={{ position: "absolute", top: 2, right: 2, width: 10, height: 10, borderRadius: "50%", backgroundColor: "red" }} />
+                            )}
+                          </div>
                           <button onClick={() => setExpandedRow(expandedRow === c._id ? null : c._id)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}>{expandedRow === c._id ? "Hide" : "View More"}</button>
                         </div>
                       </td>
