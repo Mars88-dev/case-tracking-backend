@@ -17,13 +17,13 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${BASE_URL}/api/users/login`, form);
+      const res = await axios.post(`${BASE_URL}/api/auth/login`, form); // ✅ Correct endpoint
       localStorage.setItem("token", res.data.token);
-      navigate("/"); // Go to Dashboard after successful login
+      navigate("/"); // ✅ Redirect to dashboard
     } catch (err) {
       setError("Invalid credentials");
     }
-  };
+  };  
 
   return (
     <div style={{ maxWidth: 400, margin: "80px auto", padding: 20, border: "1px solid #ccc", borderRadius: 8 }}>
