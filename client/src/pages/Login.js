@@ -1,61 +1,71 @@
+// src/pages/Login.js
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const BASE_URL = "https://case-tracking-backend.onrender.com";
+
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async e => {
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("https://case-tracking-backend.onrender.com/api/auth/login", { email, password });
+      const res = await axios.post(`${BASE_URL}/api/users/login`, form);
       localStorage.setItem("token", res.data.token);
-      navigate("/");
+      navigate("/"); // Go to Dashboard after successful login
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      setError("Invalid credentials");
     }
   };
 
   return (
-    <div style={styles.page}>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <h1>Login</h1>
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          style={styles.input}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={styles.input}
-        />
-        <button type="submit" style={styles.button}>Login</button>
+    <div style={{ maxWidth: 400, margin: "80px auto", padding: 20, border: "1px solid #ccc", borderRadius: 8 }}>
+      <h2 style={{ textAlign: "center", color: "#142a4f" }}>Login</h2>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <form onSubmit={handleLogin}>
+        <div style={{ marginBottom: 10 }}>
+          <label>Email:</label>
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+            style={{ width: "100%", padding: 8 }}
+          />
+        </div>
+        <div style={{ marginBottom: 10 }}>
+          <label>Password:</label>
+          <input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            style={{ width: "100%", padding: 8 }}
+          />
+        </div>
+        <button
+          type="submit"
+          style={{
+            width: "100%",
+            padding: 10,
+            backgroundColor: "#142a4f",
+            color: "white",
+            border: "none",
+            borderRadius: 4
+          }}
+        >
+          Login
+        </button>
       </form>
     </div>
   );
 }
-
-const styles = {
-  page: {
-    display: "flex", justifyContent: "center", alignItems: "center",
-    minHeight: "80vh", background: "#f5f5f5"
-  },
-  form: {
-    background: "#fff", padding: 30, borderRadius: 8,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)", width: 320
-  },
-  input: {
-    width: "100%", padding: "10px", marginBottom: 20,
-    borderRadius: 4, border: "1px solid #ccc"
-  },
-  button: {
-    width: "100%", padding: "12px", background: "#142a4f",
-    color: "#fff", border: "none", borderRadius: 4, cursor: "pointer"
-  }
-};
