@@ -1,6 +1,7 @@
 // File: src/components/MessageBox.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { FaTrash } from "react-icons/fa";
 
 const BASE_URL = "https://case-tracking-backend.onrender.com";
 const COLORS = {
@@ -24,7 +25,7 @@ export default function MessageBox({ caseId, onClose, currentUser }) {
       if (Array.isArray(res.data)) {
         setMessages(res.data);
       } else {
-        setMessages([]); // fallback
+        setMessages([]);
       }
     } catch (err) {
       console.error("Error fetching messages:", err);
@@ -40,9 +41,20 @@ export default function MessageBox({ caseId, onClose, currentUser }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setNewMessage("");
-      fetchMessages(); // refresh messages
+      fetchMessages();
     } catch (err) {
       console.error("Error sending message:", err);
+    }
+  };
+
+  const handleDelete = async (messageId) => {
+    try {
+      await axios.delete(`${BASE_URL}/api/messages/${messageId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchMessages();
+    } catch (err) {
+      console.error("Error deleting message:", err);
     }
   };
 
@@ -67,25 +79,39 @@ export default function MessageBox({ caseId, onClose, currentUser }) {
       boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
       fontFamily: "Arial, sans-serif"
     }}>
-      <h3 style={{ marginTop: 0, color: COLORS.navy }}>Messages for this Transaction</h3>
+      <h3 style={{ marginTop: 0, color: COLORS.navy }}>💬 Messages for this Transaction</h3>
 
       <div style={{ maxHeight: "50vh", overflowY: "auto", marginBottom: 12 }}>
         {Array.isArray(messages) && messages.length > 0 ? (
           messages.map((msg) => (
             <div key={msg._id} style={{
               background: COLORS.background,
-              padding: "6px 10px",
-              marginBottom: 8,
-              borderRadius: 4,
-              border: `1px solid ${COLORS.navy}`
+              padding: "10px 12px",
+              marginBottom: 10,
+              borderRadius: 6,
+              border: `1px solid ${COLORS.navy}`,
+              position: "relative"
             }}>
-              <strong>{msg.username}</strong><br />
-              <span>{msg.content}</span><br />
-              <small>{new Date(msg.createdAt).toLocaleString()}</small>
+              <strong style={{ color: COLORS.navy }}>{msg.username}</strong>
+              <div style={{ marginTop: 4, marginBottom: 6 }}>{msg.content}</div>
+              <small style={{ color: "#555" }}>{new Date(msg.createdAt).toLocaleString()}</small>
+              {currentUser?.username === msg.username && (
+                <button onClick={() => handleDelete(msg._id)} style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#e53e3e"
+                }}>
+                  <FaTrash />
+                </button>
+              )}
             </div>
           ))
         ) : (
-          <p>No messages yet.</p>
+          <p style={{ color: COLORS.navy }}>No messages yet.</p>
         )}
       </div>
 
@@ -96,10 +122,11 @@ export default function MessageBox({ caseId, onClose, currentUser }) {
         onChange={(e) => setNewMessage(e.target.value)}
         style={{
           width: "100%",
-          padding: 8,
-          borderRadius: 4,
+          padding: 10,
+          borderRadius: 6,
           border: `1px solid ${COLORS.gold}`,
-          marginBottom: 8
+          marginBottom: 10,
+          resize: "none"
         }}
       />
 
@@ -109,26 +136,28 @@ export default function MessageBox({ caseId, onClose, currentUser }) {
           style={{
             background: COLORS.navy,
             color: COLORS.white,
-            padding: "6px 14px",
+            padding: "8px 18px",
             border: "none",
-            borderRadius: 4,
+            borderRadius: 6,
+            fontWeight: "bold",
             cursor: "pointer"
           }}
         >
-          Send
+          ➤ Send
         </button>
         <button
           onClick={onClose}
           style={{
             background: "#e53e3e",
             color: "#fff",
-            padding: "6px 14px",
+            padding: "8px 18px",
             border: "none",
-            borderRadius: 4,
+            borderRadius: 6,
+            fontWeight: "bold",
             cursor: "pointer"
           }}
         >
-          Close
+          ✖ Close
         </button>
       </div>
     </div>

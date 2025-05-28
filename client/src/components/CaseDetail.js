@@ -78,7 +78,13 @@ const ColorInput = ({ name, value, onChange }) => (
 const Input = ({ label, name, value, onChange, color }) => (
   <div style={{ ...styles.field, backgroundColor: color }}>
     <label style={styles.label}>{label}</label>
-    <input type="text" name={name} value={value || ""} onChange={onChange} style={styles.input} />
+    <input
+      type="text"
+      name={name}
+      value={value || ""}
+      onChange={onChange}
+      style={{ ...styles.input, fontFamily: "Segoe UI", fontSize: "15px", fontWeight: 500 }}
+    />
     <ColorInput name={name} value={color} onChange={onChange} />
   </div>
 );
@@ -89,8 +95,19 @@ const DateSelect = ({ label, name, value, onChange, color }) => {
     <div style={{ ...styles.field, backgroundColor: color }}>
       <div style={styles.subLabel}>{label}</div>
       <div style={styles.dateRow}>
-        <input type="date" name={name} value={isDate ? value : ""} onChange={onChange} style={styles.input} />
-        <select name={name} value={!isDate ? value || "" : ""} onChange={onChange} style={styles.select}>
+        <input
+          type="date"
+          name={name}
+          value={isDate ? value : ""}
+          onChange={onChange}
+          style={{ ...styles.input, fontFamily: "Segoe UI", fontSize: "15px", fontWeight: 500 }}
+        />
+        <select
+          name={name}
+          value={!isDate ? value || "" : ""}
+          onChange={onChange}
+          style={styles.select}
+        >
           <option value="" hidden>--</option>
           {DATE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </select>

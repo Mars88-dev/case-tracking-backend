@@ -68,8 +68,8 @@ const columns = [
 export default function Dashboard() {
   const [casesByUser, setCasesByUser] = useState({});
   const [expandedRow, setExpandedRow] = useState(null);
-  const [sortAZ, setSortAZ] = useState(false);
-  const [filterOutstanding, setFilterOutstanding] = useState(false);
+  const [sortAZ] = useState(true); // Always A-Z
+  const [filterType, setFilterType] = useState("none");
   const [colorPickIndex, setColorPickIndex] = useState(null);
   const [selectedCaseId, setSelectedCaseId] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -88,8 +88,11 @@ export default function Dashboard() {
       setCurrentUser(userRes.data);
 
       let data = res.data;
-      if (sortAZ) data = [...data].sort((a, b) => a.reference.localeCompare(b.reference));
-      if (filterOutstanding) data = data.filter(c => !c.bondAmount || !c.depositAmount || !c.transferCostReceived);
+      data = [...data].sort((a, b) => a.reference.localeCompare(b.reference));
+
+      if (filterType === "bond") data = data.filter(c => !c.bondAmount);
+      else if (filterType === "deposit") data = data.filter(c => !c.depositAmount);
+      else if (filterType === "transfer") data = data.filter(c => !c.transferCostReceived);
 
       const grouped = data.reduce((acc, c) => {
         const user = c.createdBy?.username || "Unknown User";
@@ -102,7 +105,7 @@ export default function Dashboard() {
       const messagePromises = data.map(c =>
         axios.get(`${BASE_URL}/api/cases/${c._id}/messages`, {
           headers: { Authorization: `Bearer ${token}` }
-        }).then(res => ({ id: c._id, count: res.data.length })).catch(() => ({ id: c._id, count: 0 }))
+        }).then(res => ({ id: c._id, count: res.data.filter(m => !m.readBy?.includes(userRes.data._id)).length })).catch(() => ({ id: c._id, count: 0 }))
       );
       const counts = await Promise.all(messagePromises);
       const countsMap = counts.reduce((acc, cur) => {
@@ -112,7 +115,7 @@ export default function Dashboard() {
       setMessageCounts(countsMap);
 
     }).catch(console.error);
-  }, [sortAZ, filterOutstanding, token]);
+  }, [filterType, token]);
 
   useEffect(() => {
     fetchCases();
@@ -171,9 +174,10 @@ export default function Dashboard() {
         <img src="/logo.png" alt="Logo" style={{ height: 90 }} />
         <h1 style={{ color: COLORS.primary, fontSize: 32 }}>Dashboard</h1>
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => setSortAZ(!sortAZ)} style={{ padding: 8, borderRadius: 4 }}>Sort A-Z</button>
-          <button onClick={() => setFilterOutstanding(!filterOutstanding)} style={{ padding: 8, borderRadius: 4 }}>Filter Outstanding</button>
-          <button onClick={() => { setSortAZ(false); setFilterOutstanding(false); }} style={{ padding: 8, borderRadius: 4 }}>Reset</button>
+          <button onClick={() => setFilterType("none")} style={{ padding: 8, borderRadius: 4 }}>All</button>
+          <button onClick={() => setFilterType("bond")} style={{ padding: 8, borderRadius: 4 }}>No Bond Amount</button>
+          <button onClick={() => setFilterType("deposit")} style={{ padding: 8, borderRadius: 4 }}>No Deposit Amount</button>
+          <button onClick={() => setFilterType("transfer")} style={{ padding: 8, borderRadius: 4 }}>No Transfer Cost</button>
         </div>
       </div>
 
@@ -250,11 +254,12 @@ export default function Dashboard() {
         </section>
       ))}
 
-      {selectedCaseId && currentUser && (
+{selectedCaseId && currentUser && (
         <MessageBox
           caseId={selectedCaseId}
           onClose={handleCloseMessages}
           currentUser={currentUser}
+          refreshMessages={fetchCases}
         />
       )}
     </div>

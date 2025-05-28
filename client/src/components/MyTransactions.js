@@ -80,11 +80,11 @@ const formatDate = (val) => {
 
 const renderSection = (title, fields, data) => (
   <>
-    <div style={{ gridColumn: "1 / -1", margin: "10px 0 4px", borderBottom: `2px solid ${COLORS.gold}`, paddingBottom: 4, fontWeight: "bold", fontSize: 14, color: COLORS.gold }}>{title}</div>
+    <div style={{ gridColumn: "1 / -1", margin: "10px 0 4px", borderBottom: `2px solid ${COLORS.gold}`, paddingBottom: 4, fontWeight: "bold", fontSize: 15, color: COLORS.gold, fontFamily: 'Segoe UI' }}>{title}</div>
     {fields.map(({ key, label }) => (
       <div key={key} style={key === "comments" ? { gridColumn: "1 / -1" } : {}}>
-        <div style={{ background: COLORS.primary, color: COLORS.white, padding: '6px 10px', borderRadius: 4, fontWeight: 'bold' }}>{label}</div>
-        <div style={{ border: `1px solid ${COLORS.border}`, padding: '6px 10px', borderRadius: 4, backgroundColor: data.colors?.[key] || COLORS.white }}>{formatDate(data[key])}</div>
+        <div style={{ background: COLORS.primary, color: COLORS.white, padding: '6px 10px', borderRadius: 4, fontWeight: 600, fontSize: 14, fontFamily: 'Segoe UI' }}>{label}</div>
+        <div style={{ border: `1px solid ${COLORS.border}`, padding: '8px 10px', borderRadius: 4, backgroundColor: data.colors?.[key] || COLORS.white, fontSize: 15, fontFamily: 'Segoe UI' }}>{formatDate(data[key])}</div>
       </div>
     ))}
   </>
@@ -93,7 +93,7 @@ const renderSection = (title, fields, data) => (
 export default function MyTransaction() {
   const [cases, setCases] = useState([]);
   const [expandedRow, setExpandedRow] = useState(null);
-  const [sortAZ, setSortAZ] = useState(false);
+  const [sortAZ, setSortAZ] = useState(true); // Default sorting A-Z ON
   const [filterOutstanding, setFilterOutstanding] = useState(false);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
