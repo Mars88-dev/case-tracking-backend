@@ -209,6 +209,30 @@ app.post("/api/cases/:id/messages", authMiddleware, async (req, res) => {
   }
 });
 
+// Delete a message
+app.delete("/api/cases/:caseId/messages/:messageId", authMiddleware, async (req, res) => {
+  try {
+    const { caseId, messageId } = req.params;
+    const message = await Message.findOne({ _id: messageId, caseId });
+
+    if (!message) return res.status(404).json({ message: "Message not found" });
+
+    // Only the sender or an admin can delete the message
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(403).json({ message: "Unauthorized" });
+
+    if (!user.isAdmin && message.userId.toString() !== user._id.toString()) {
+      return res.status(403).json({ message: "Not allowed to delete this message" });
+    }
+
+    await message.deleteOne();
+    res.json({ message: "Message deleted" });
+  } catch (err) {
+    console.error("Error deleting message:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Delete Case
 app.delete("/api/cases/:id", authMiddleware, async (req, res) => {
   try {
