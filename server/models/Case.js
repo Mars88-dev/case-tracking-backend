@@ -57,8 +57,10 @@ const caseSchema = new mongoose.Schema({
   deedsPrepDate: String,
   registrationDate: String,
   comments: String,
-  colors: { type: mongoose.Schema.Types.Mixed, default: {} },
 
+  isActive: { type: Boolean, default: true }, // ✅ NEW FIELD ADDED
+
+  colors: { type: mongoose.Schema.Types.Mixed, default: {} },
   messages: [messageSchema]
 }, { timestamps: true });
 

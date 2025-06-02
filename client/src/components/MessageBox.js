@@ -49,14 +49,17 @@ export default function MessageBox({ caseId, onClose, currentUser }) {
 
   const handleDelete = async (messageId) => {
     try {
-      await axios.delete(`${BASE_URL}/api/messages/${messageId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.delete(
+        `${BASE_URL}/api/cases/${caseId}/messages/${messageId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
       fetchMessages();
     } catch (err) {
       console.error("Error deleting message:", err);
     }
-  };
+  };  
 
   useEffect(() => {
     fetchMessages();

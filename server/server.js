@@ -118,8 +118,9 @@ app.post("/api/cases", authMiddleware, async (req, res) => {
     const data = {
       ...req.body,
       createdBy: req.userId,
-      instructionReceived: parseDMY(req.body.instructionReceived)
-    };
+      instructionReceived: parseDMY(req.body.instructionReceived),
+      isActive: req.body.isActive ?? true
+    };    
     const newCase = new Case(data);
     const saved = await newCase.save();
     res.status(201).json(saved);
@@ -171,8 +172,11 @@ app.put("/api/cases/:id", authMiddleware, async (req, res) => {
 
     Object.assign(updated, {
       ...req.body,
-      instructionReceived: parseDMY(req.body.instructionReceived) || updated.instructionReceived
-    });
+      instructionReceived: req.body.instructionReceived
+        ? parseDMY(req.body.instructionReceived)
+        : updated.instructionReceived,
+      isActive: req.body.isActive !== undefined ? req.body.isActive : updated.isActive
+    });    
 
     await updated.save();
     res.json(updated);

@@ -33,6 +33,7 @@ const initialForm = {
   documentsLodgedDate: "",
   deedsPrepDate: "",
   registrationDate: "",
+  isActive: true,
   colors: {},
 };
 
@@ -136,10 +137,12 @@ export default function CaseDetail() {
   }, [id, isNew]);
 
   const handleChange = e => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     if (name.startsWith("colors.")) {
       const fieldName = name.split(".")[1];
       setForm(prev => ({ ...prev, colors: { ...prev.colors, [fieldName]: value } }));
+    } else if (type === "checkbox") {
+      setForm(prev => ({ ...prev, [name]: checked }));
     } else {
       setForm(prev => ({ ...prev, [name]: value }));
     }
@@ -194,7 +197,8 @@ export default function CaseDetail() {
         { label: "Agency", name: "agency" },
         { label: "Purchase Price", name: "purchasePrice" },
         { label: "Agent", name: "agent" },
-        { label: "Property", name: "property" }
+        { label: "Property", name: "property" },
+        { label: "Active Case?", name: "isActive", type: "checkbox" }
       ]
     },
     {

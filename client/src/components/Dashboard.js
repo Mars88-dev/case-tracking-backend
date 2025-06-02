@@ -68,12 +68,13 @@ const columns = [
 export default function Dashboard() {
   const [casesByUser, setCasesByUser] = useState({});
   const [expandedRow, setExpandedRow] = useState(null);
-  const [sortAZ] = useState(true); // Always A-Z
+  const [sortAZ] = useState(true);
   const [filterType, setFilterType] = useState("none");
   const [colorPickIndex, setColorPickIndex] = useState(null);
   const [selectedCaseId, setSelectedCaseId] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [messageCounts, setMessageCounts] = useState({});
+  const [activeOnly, setActiveOnly] = useState(true);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -93,6 +94,9 @@ export default function Dashboard() {
       if (filterType === "bond") data = data.filter(c => !c.bondAmount);
       else if (filterType === "deposit") data = data.filter(c => !c.depositAmount);
       else if (filterType === "transfer") data = data.filter(c => !c.transferCostReceived);
+
+      if (activeOnly) data = data.filter(c => c.isActive !== false);
+      else data = data.filter(c => c.isActive === false);
 
       const grouped = data.reduce((acc, c) => {
         const user = c.createdBy?.username || "Unknown User";
@@ -115,16 +119,28 @@ export default function Dashboard() {
       setMessageCounts(countsMap);
 
     }).catch(console.error);
-  }, [filterType, token]);
+  }, [filterType, token, activeOnly]);
 
   useEffect(() => {
     fetchCases();
   }, [fetchCases]);
 
+  const toggleActive = async (caseId, currentStatus) => {
+    try {
+      await axios.put(`${BASE_URL}/api/cases/${caseId}/toggle-active`, { isActive: !currentStatus }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchCases();
+    } catch (err) {
+      console.error("Failed to toggle active status:", err);
+    }
+  };
+
   const handleOpenMessages = (id) => {
     setSelectedCaseId(id);
     setMessageCounts(prev => ({ ...prev, [id]: 0 }));
   };
+
   const handleCloseMessages = () => setSelectedCaseId(null);
 
   const daysSince = (inputDate) => {

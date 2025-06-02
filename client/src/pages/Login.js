@@ -3,9 +3,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = "https://case-tracking-backend.onrender.com";
-
-export default function Login() {
+const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -14,58 +12,64 @@ export default function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     try {
-      const res = await axios.post(`${BASE_URL}/api/auth/login`, form); // ✅ Correct endpoint
-      localStorage.setItem("token", res.data.token);
-      navigate("/"); // ✅ Redirect to dashboard
+      const res = await axios.post(
+        "https://case-tracking-backend.onrender.com/api/auth/login",
+        form
+      );
+      const { token } = res.data;
+      localStorage.setItem("token", token);
+      navigate("/"); // Navigate to dashboard
     } catch (err) {
-      setError("Invalid credentials");
+      setError(err.response?.data?.message || "Login failed");
     }
-  };  
+  };
 
   return (
-    <div style={{ maxWidth: 400, margin: "80px auto", padding: 20, border: "1px solid #ccc", borderRadius: 8 }}>
-      <h2 style={{ textAlign: "center", color: "#142a4f" }}>Login</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleLogin}>
-        <div style={{ marginBottom: 10 }}>
-          <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            required
-            style={{ width: "100%", padding: 8 }}
-          />
-        </div>
-        <div style={{ marginBottom: 10 }}>
-          <label>Password:</label>
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            required
-            style={{ width: "100%", padding: 8 }}
-          />
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#f0f4f8]">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md p-8 bg-white rounded-lg shadow-md"
+      >
+        <h2 className="text-2xl font-bold mb-6 text-center text-[#142a4f]">
+          Login to Case Tracker
+        </h2>
+
+        {error && <div className="mb-4 text-center text-red-600">{error}</div>}
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={form.email}
+          onChange={handleChange}
+          className="w-full p-2 mb-4 border border-gray-300 rounded"
+          required
+        />
+
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={form.password}
+          onChange={handleChange}
+          className="w-full p-2 mb-6 border border-gray-300 rounded"
+          required
+        />
+
         <button
           type="submit"
-          style={{
-            width: "100%",
-            padding: 10,
-            backgroundColor: "#142a4f",
-            color: "white",
-            border: "none",
-            borderRadius: 4
-          }}
+          className="w-full bg-[#142a4f] text-white p-2 rounded hover:bg-[#0f1e39]"
         >
           Login
         </button>
       </form>
     </div>
   );
-}
+};
+
+export default Login;
