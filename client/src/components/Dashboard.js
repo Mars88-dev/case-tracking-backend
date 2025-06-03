@@ -194,7 +194,13 @@ export default function Dashboard() {
           <button onClick={() => setFilterType("bond")} style={{ padding: 8, borderRadius: 4 }}>No Bond Amount</button>
           <button onClick={() => setFilterType("deposit")} style={{ padding: 8, borderRadius: 4 }}>No Deposit Amount</button>
           <button onClick={() => setFilterType("transfer")} style={{ padding: 8, borderRadius: 4 }}>No Transfer Cost</button>
-        </div>
+          <button
+    onClick={() => setActiveOnly(prev => !prev)}
+    style={{ padding: 8, borderRadius: 4, backgroundColor: COLORS.primary, color: COLORS.white }}
+  >
+    {activeOnly ? "🔴 Show Inactive" : "🟢 Show Active"}
+  </button>
+</div>
       </div>
 
       {Object.entries(casesByUser).map(([user, cases]) => (
@@ -224,17 +230,23 @@ export default function Dashboard() {
                         <td key={key} style={{ padding: "10px 8px", backgroundColor: c.colors?.[key] || "inherit", wordBreak: "break-word" }}>{c[key] || "—"}</td>
                       ))}
                       <td style={{ padding: "10px 8px" }}>
-                        <div style={{ display: "flex", gap: 6, position: "relative" }}>
-                          <button onClick={() => navigate(`/case/${c._id}`)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}>Edit</button>
-                          <button onClick={() => navigate(`/report/${c._id}`)} style={{ background: COLORS.accent, color: COLORS.primary, border: "none", padding: "6px 10px", borderRadius: 4 }}>Report</button>
-                          <div style={{ position: "relative" }}>
-                            <button onClick={() => handleOpenMessages(c._id)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}><FaComments /></button>
-                            {messageCounts[c._id] > 0 && (
-                              <span style={{ position: "absolute", top: 2, right: 2, width: 10, height: 10, borderRadius: "50%", backgroundColor: "red" }} />
-                            )}
-                          </div>
-                          <button onClick={() => setExpandedRow(expandedRow === c._id ? null : c._id)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}>{expandedRow === c._id ? "Hide" : "View More"}</button>
-                        </div>
+                      <div style={{ display: "flex", gap: 6, position: "relative", flexWrap: "wrap" }}>
+  <button onClick={() => navigate(`/case/${c._id}`)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}>Edit</button>
+  <button onClick={() => navigate(`/report/${c._id}`)} style={{ background: COLORS.accent, color: COLORS.primary, border: "none", padding: "6px 10px", borderRadius: 4 }}>Report</button>
+  <div style={{ position: "relative" }}>
+    <button onClick={() => handleOpenMessages(c._id)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}><FaComments /></button>
+    {messageCounts[c._id] > 0 && (
+      <span style={{ position: "absolute", top: 2, right: 2, width: 10, height: 10, borderRadius: "50%", backgroundColor: "red" }} />
+    )}
+  </div>
+  <button onClick={() => setExpandedRow(expandedRow === c._id ? null : c._id)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}>{expandedRow === c._id ? "Hide" : "View More"}</button>
+  <button
+    onClick={() => toggleActive(c._id, c.isActive)}
+    style={{ background: c.isActive === false ? "#38a169" : "#e53e3e", color: "#fff", padding: "6px 10px", border: "none", borderRadius: 4 }}
+  >
+    {c.isActive === false ? "Mark Active" : "Mark Inactive"}
+  </button>
+</div>
                       </td>
                     </tr>
                     {colorPickIndex === c._id && (
