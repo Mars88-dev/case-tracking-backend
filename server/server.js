@@ -213,6 +213,25 @@ app.post("/api/cases/:id/messages", authMiddleware, async (req, res) => {
   }
 });
 
+// Toggle Active/Inactive Status
+app.put("/api/cases/:id/toggle-active", authMiddleware, async (req, res) => {
+  try {
+    const found = await Case.findById(req.params.id);
+    if (!found) return res.status(404).json({ message: "Case not found" });
+
+    const canEdit = req.user.isAdmin || found.createdBy.toString() === req.userId;
+    if (!canEdit) return res.status(403).json({ message: "Unauthorized" });
+
+    found.isActive = !found.isActive;
+    await found.save();
+
+    res.json({ message: `Case marked as ${found.isActive ? "active" : "inactive"}`, isActive: found.isActive });
+  } catch (err) {
+    console.error("Toggle error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Delete a message
 app.delete("/api/cases/:caseId/messages/:messageId", authMiddleware, async (req, res) => {
   try {
