@@ -2,23 +2,27 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const Login = () => {
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async e => {
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
-      const res = await axios.post("https://case-tracking-backend.onrender.com/api/auth/login", {
-        email,
-        password,
-      });
-      localStorage.setItem("token", res.data.token);
-      navigate("/");
+      const res = await axios.post(
+        "https://case-tracking-backend.onrender.com/api/auth/login",
+        form
+      );
+      const { token } = res.data;
+      localStorage.setItem("token", token);
+      navigate("/"); // Navigate to dashboard
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }
@@ -27,31 +31,33 @@ export default function Login() {
   return (
     <div style={styles.page}>
       <form onSubmit={handleSubmit} style={styles.form}>
-        <h1 style={styles.title}>Login</h1>
+        <h1 style={styles.title}>🔐 Welcome to Case Tracker</h1>
 
         {error && <div style={styles.error}>{error}</div>}
 
         <input
           placeholder="Email"
           type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
+          name="email"
+          value={form.email}
+          onChange={handleChange}
           style={styles.input}
           required
         />
         <input
           placeholder="Password"
           type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
+          name="password"
+          value={form.password}
+          onChange={handleChange}
           style={styles.input}
           required
         />
-        <button type="submit" style={styles.button}>Login</button>
+        <button type="submit" style={styles.button}>🚀 Login</button>
       </form>
     </div>
   );
-}
+};
 
 const styles = {
   page: {
@@ -59,13 +65,15 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     minHeight: "100vh",
-    background: "#f5f5f5"
+    background: "#f5f5f5",
+    padding: "0 16px"
   },
   form: {
     background: "#ffffff",
     padding: 30,
     borderRadius: 10,
-    width: 340,
+    width: "100%",
+    maxWidth: 400,
     boxShadow: "0 5px 20px rgba(0,0,0,0.1)"
   },
   title: {
@@ -99,3 +107,5 @@ const styles = {
     cursor: "pointer"
   }
 };
+
+export default Login;
