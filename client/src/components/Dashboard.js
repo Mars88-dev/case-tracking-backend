@@ -95,8 +95,11 @@ export default function Dashboard() {
       else if (filterType === "deposit") data = data.filter(c => !c.depositAmount);
       else if (filterType === "transfer") data = data.filter(c => !c.transferCostReceived);
 
-      if (activeOnly) data = data.filter(c => c.isActive !== false);
-      else data = data.filter(c => c.isActive === false);
+      if (filterType === "active") {
+        data = data.filter(c => c.isActive !== false);
+      } else if (filterType === "inactive") {
+        data = data.filter(c => c.isActive === false);
+      }      
 
       const grouped = data.reduce((acc, c) => {
         const user = c.createdBy?.username || "Unknown User";
@@ -195,11 +198,23 @@ export default function Dashboard() {
           <button onClick={() => setFilterType("deposit")} style={{ padding: 8, borderRadius: 4 }}>No Deposit Amount</button>
           <button onClick={() => setFilterType("transfer")} style={{ padding: 8, borderRadius: 4 }}>No Transfer Cost</button>
           <button
-    onClick={() => setActiveOnly(prev => !prev)}
-    style={{ padding: 8, borderRadius: 4, backgroundColor: COLORS.primary, color: COLORS.white }}
-  >
-    {activeOnly ? "🔴 Show Inactive" : "🟢 Show Active"}
-  </button>
+  onClick={() => window.print()}
+  style={{
+    padding: 8,
+    borderRadius: 4,
+    backgroundColor: "#d2ac68",
+    color: "white",
+    fontWeight: "bold"
+  }}
+>
+  🖨️ Print
+</button>
+<button
+  onClick={() => setFilterType(filterType === "active" ? "inactive" : "active")}
+  style={{ padding: 8, borderRadius: 4, backgroundColor: COLORS.primary, color: COLORS.white }}
+>
+  {filterType === "inactive" ? "🟢 Show Active" : "🔴 Show Inactive"}
+</button>
 </div>
       </div>
 
@@ -241,11 +256,17 @@ export default function Dashboard() {
   </div>
   <button onClick={() => setExpandedRow(expandedRow === c._id ? null : c._id)} style={{ background: COLORS.primary, color: COLORS.white, border: "none", padding: "6px 10px", borderRadius: 4 }}>{expandedRow === c._id ? "Hide" : "View More"}</button>
   <button
-    onClick={() => toggleActive(c._id, c.isActive)}
-    style={{ background: c.isActive === false ? "#38a169" : "#e53e3e", color: "#fff", padding: "6px 10px", border: "none", borderRadius: 4 }}
-  >
-    {c.isActive === false ? "Mark Active" : "Mark Inactive"}
-  </button>
+  style={{
+    background: c.isActive === false ? "#e53e3e" : "#38a169",
+    color: "#fff",
+    padding: "6px 10px",
+    border: "none",
+    borderRadius: 4,
+    fontWeight: "bold"
+  }}
+>
+  {c.isActive === false ? "Pending" : "Active"}
+</button>
 </div>
                       </td>
                     </tr>
